@@ -22,6 +22,8 @@ function load_game_list() {
                    '<em>Authors: Niklas Hasenkopf, Henrik Lümkemann, Roman Ostermiller</em>');
     load_game_item('Hangman (dpi24.11)', 'games/dpi24-11-hangman/hangman.svg', null /* '' */,
                    '<em>Authors: Matyas Bartha, Mike Baumgartner and Alexander Lutsch</em>');
+    load_game_item('TinyDog (dpi25.42)', 'games/tictactoe/tic-tac-toe.svg', null,
+                    '<em>Authors: Emanuele Tirendi, Fabio Rueff, Benjamin Regez');
 }
 
 function load_game_item(title, imageName, fct, descr) {
