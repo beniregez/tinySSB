@@ -9,7 +9,8 @@ var display_or_not = [
     'lst:chats', 'lst:prod', 'lst:games', 'lst:contacts', 'lst:members',
     'div:posts', 'lst:kanban', 'div:board',
     'div:footer', 'div:textarea', 'div:confirm-members', 'div:settings',
-    'div:tictactoe_list', 'div:tictactoe_board'
+    'div:tictactoe_list', 'div:tictactoe_board',
+    'div:tinydog_list', 'div:tinydog_board'
 ];
 
 var prev_scenario = 'chats';
@@ -28,6 +29,8 @@ var scenarioDisplay = {
     'board': ['div:back', 'core', 'div:board'], // KANBAN
     'tictactoe-list': ['div:back', 'core', 'div:tictactoe_list', 'plus'],
     'tictactoe-board': ['div:back', 'core', 'div:tictactoe_board'],
+    'tinydog-list': ['div:back', 'core', 'div:tinydog_list', 'plus'],
+    'tinydog-board': ['div:back', 'core', 'div:tinydog_board']
 }
 
 var scenarioMenu = {
@@ -78,6 +81,9 @@ var scenarioMenu = {
     'tictactoe-board': [
         ['Settings', 'menu_settings'],
         ['About', 'menu_about']],
+
+    'tinydog-list': [['Settings', 'menu_settings'], ['About', 'menu_about']],
+    'tinydog-board': [['Settings', 'menu_settings'], ['About', 'menu_about']]
 }
 
 const QR_SCAN_TARGET = {
@@ -118,6 +124,8 @@ function onBackPressed() {
         setScenario('games')
     else if (curr_scenario == 'tictactoe-board')
         setScenario('tictactoe-list')
+    else if (curr_scenario == 'tinydog-list')
+        setScenario('games')
 }
 
 function setScenario(s) {
@@ -232,6 +240,16 @@ function setScenario(s) {
             c.style.display = null;
             let fed = tremola.tictactoe.active[tremola.tictactoe.current].peer
             c.innerHTML = `<font size=+1><strong>TTT with ${fid2display(fed)}</strong></font>`;
+        }
+        if (s == 'tinydog-list') {
+            document.getElementById("tremolaTitle").style.display = 'none';
+            var c = document.getElementById("conversationTitle");
+            c.style.display = null;
+            c.innerHTML = "<font size=+1><strong>TinyDog</strong></font><br>Pick or create a new game";
+            tdg_load_list();
+        }
+        if (s == 'tinydog-game') {
+            console.log("TODO: implement tinydog-game")
         }
     }
 }
@@ -365,6 +383,8 @@ function plus_button() {
         menu_new_board();
     } else if (curr_scenario == 'tictactoe-list') {
         ttt_new_game();
+    } else if (curr_scenario == 'tinydog-list') {
+        tdg_new_game();
     }
 }
 
