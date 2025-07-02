@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <link rel="stylesheet" type="text/css" href="tremola.css" media="screen" />
   <link rel="stylesheet" type="text/css" href="games/tictactoe/ttt.css" media="screen" />
+  <link rel="stylesheet" type="text/css" href="games/tinydog/tinydog.css" media="screen" />
   <!-- link rel="stylesheet" type="text/css" href="games/dpi24-06-battleship/duel.css" media="screen" / -->
   <!-- link rel="stylesheet" type="text/css" href="games/dpi24-09-connect4/connect4.css" media="screen" / -->
   <link rel="stylesheet" type="text/css" href="prod/kanban/kanban.css" media="screen" />
@@ -27,6 +28,7 @@
   <script type="text/javascript" charset="UTF-8" src="prod/kanban/board_ui.js"></script>
   <script type="text/javascript" charset="UTF-8" src="games/games.js"></script>
   <script type="text/javascript" charset="UTF-8" src="games/tictactoe/ttt.js"></script>
+  <script type="text/javascript" charset="UTF-8" src="games/tinydog/tinydog.js"></script>
   <!-- script type="text/javascript" charset="UTF-8" src="games/dpi24-06-battleship/duel.js"></script -->
   <!-- script type="text/javascript" charset="UTF-8" src="games/dpi24-09-connect4/connect4.js"></script -->
   <script type="text/javascript" charset="UTF-8" src="util/qrcode.min.js"></script>
@@ -328,6 +330,24 @@
       <div id='ttt_footer' style='margin: 15px;'>
         <button style='height: 30px;' onclick='ttt_give_up()'>give up</button>
         <button style='height: 30px;' onclick='ttt_walk_away()'>walk away</button>
+      </div>
+
+    </div>
+
+    <!-- Tinydog -->
+    <div id='div:tinydog_list' style='display: none; text-align: center;'></div>
+
+    <div id='div:tinydog_board' style='display: none; text-align: center;'>
+
+      <div id='tdg_title' style='margin-bottom: 15px;'>
+      </div>
+
+      <div class='tdg_table' id='tdg_table'>
+      </div>
+
+      <div id='tdg_footer' style='margin: 15px;'>
+        <button style='height: 30px;' onclick='tdg_give_up()'>give up</button>
+        <button style='height: 30px;' onclick='tdg_walk_away()'>walk away</button>
       </div>
 
     </div>
