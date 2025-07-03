@@ -191,6 +191,24 @@ function fill_members(single) {
     document.getElementById(myId).disabled = true;
 }
 
+function fill_members_for_tinydog(step, peer1 = null) {
+    let choices = '';
+
+    for (let m in tremola.contacts) {
+        if (m === myId) continue;
+        if (step === 2 && m === peer1) continue;
+
+        choices += '<div style="margin-bottom: 10px;">';
+        choices += `<label onclick="tdg_select_peer('${m}', ${step})"><input type="checkbox" id="${m}" style="vertical-align: middle;">`;
+        choices += '<div class="contact_item_button light" style="white-space: nowrap; width: calc(100% - 40px); padding: 5px; vertical-align: middle;">';
+        choices += '<div style="text-overflow: ellipsis; overflow: hidden;">' + escapeHTML(fid2display(m)) + '</div>';
+        choices += '<div style="text-overflow: ellipsis; overflow: hidden;"><font size=-2>' + m + '</font></div>';
+        choices += '</div></label></div>\n';
+    }
+
+    document.getElementById('lst:members').innerHTML = choices;
+}
+
 function fill_members_onlyone(m) {
     console.log("only one " + m)
     if (document.getElementById(m).checked) {
