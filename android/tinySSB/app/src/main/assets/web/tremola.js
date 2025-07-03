@@ -191,24 +191,6 @@ function fill_members(single) {
     document.getElementById(myId).disabled = true;
 }
 
-function fill_members_for_tinydog(step, peer1 = null) {
-    let choices = '';
-
-    for (let m in tremola.contacts) {
-        if (m === myId) continue;
-        if (step === 2 && m === peer1) continue;
-
-        choices += '<div style="margin-bottom: 10px;">';
-        choices += `<label onclick="tdg_select_peer('${m}', ${step})"><input type="checkbox" id="${m}" style="vertical-align: middle;">`;
-        choices += '<div class="contact_item_button light" style="white-space: nowrap; width: calc(100% - 40px); padding: 5px; vertical-align: middle;">';
-        choices += '<div style="text-overflow: ellipsis; overflow: hidden;">' + escapeHTML(fid2display(m)) + '</div>';
-        choices += '<div style="text-overflow: ellipsis; overflow: hidden;"><font size=-2>' + m + '</font></div>';
-        choices += '</div></label></div>\n';
-    }
-
-    document.getElementById('lst:members').innerHTML = choices;
-}
-
 function fill_members_onlyone(m) {
     console.log("only one " + m)
     if (document.getElementById(m).checked) {
@@ -219,6 +201,48 @@ function fill_members_onlyone(m) {
             document.getElementById(nm).checked = false;
         }
     }
+}
+
+function fill_members_dual() {
+    let choices = '';
+    for (let m in tremola.contacts) {
+        let isSelf = (m === myId);
+        let disabled = isSelf ? 'disabled checked' : '';
+        let cb = isSelf ? '' : `onchange="check_selected_peers()"`;
+
+        choices += '<div style="margin-bottom: 10px;">';
+        choices += `<label><input type="checkbox" id="${m}" ${cb} ${disabled} style="vertical-align: middle;">`;
+        choices += '<div class="contact_item_button light" style="white-space: nowrap; width: calc(100% - 40px); padding: 5px; vertical-align: middle;">';
+        choices += `<div style="text-overflow: ellipsis; overflow: hidden;">${escapeHTML(fid2display(m))}</div>`;
+        choices += `<div style="text-overflow: ellipsis; overflow: hidden;"><font size=-2>${m}</font></div>`;
+        choices += '</div></label></div>\n';
+    }
+    document.getElementById('lst:members').innerHTML = choices;
+
+    check_selected_peers(); // initial check
+}
+
+function check_selected_peers() {
+    let count = 0;
+    for (let m in tremola.contacts) {
+        if (m !== myId) {
+            let cb = document.getElementById(m);
+            if (cb && cb.checked) count++;
+        }
+    }
+
+    // Only two may be selected
+    for (let m in tremola.contacts) {
+        if (m !== myId) {
+            let cb = document.getElementById(m);
+            if (cb) {
+                cb.disabled = !cb.checked && count >= 2;
+            }
+        }
+    }
+
+    // Show OK-Button only if exactly two are selected.
+    document.getElementById("div:confirm-members").style.display = (count === 2) ? 'flex' : 'none';
 }
 
 // --- util

@@ -1,6 +1,6 @@
 function tdg_new_game() {
     closeOverlay();
-    fill_members(true);
+    fill_members_dual(true);
     prev_scenario = 'tinydog-list';
     setScenario("members");
 
