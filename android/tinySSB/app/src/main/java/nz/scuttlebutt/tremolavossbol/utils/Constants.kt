@@ -33,6 +33,7 @@ class Constants{
         val TINYSSB_APP_KANBAN       = Bipf.mkString("KAN") // kanban boards
         val TINYSSB_APP_TEXTANDVOICE = Bipf.mkString("TAV") // tips bytes bytes int (rcpt)
         val TINYSSB_APP_TICTACTOE    = Bipf.mkString("TTT") //
+        val TINYSSB_APP_TINYDOG      = Bipf.mkString("TDG") //
         val TINYSSB_APP_IAM          = Bipf.mkString("IAM") // str
         val TINYSSB_APP_NEWTRUSTED   = Bipf.mkString("TRT")
         val TINYSSB_APP_DELETED      = Bipf.mkString("DEL")

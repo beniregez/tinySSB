@@ -22,11 +22,7 @@ function tdg_new_game_confirmed() {
             selected.push(m);
     }
 
-    if (selected.length === 3) {
-        let [p1, p2, p3] = selected;
-    // TODO implement in backend (WebAppInterface.kt)
-        backend("tinydog N " + p1 + " " + p2);
-    }
+    backend("tinydog N " + selected[0] + " " + selected[1])
 
     if (curr_scenario === 'members')
         setScenario('tinydog-list');
@@ -49,5 +45,37 @@ function tdg_load_list() {
         row += "</div>";
 
         lst.innerHTML += row;
+    }
+}
+
+function tdg_on_rx(ref, from, args) {
+    if (typeof tremola.tinydog == "undefined")
+        tremola.tinydog = { 'active': {}, 'closed': {} };
+    let ta = tremola.tinydog.active;
+
+    if (args[0] == 'N') {
+        let participants = [args[1], args[2], myId];
+
+        if (!participants.includes(myId))
+            return; // ignore if not a participant
+
+        let initiator = from;
+        let otherPlayers = participants.filter(p => p !== myId);
+
+        ta[ref] = {
+            'peers': otherPlayers,                    // the other two players
+            'participants': participants,             // all 3 player IDs
+            'state': (myId === initiator) ? 'inviting' : 'invited',
+            'close_reason': '',
+            'board': [0,0,0,0,0,0,0,0,0],
+            'cnt': 0,
+            'me_index': participants.indexOf(myId) + 1
+        };
+
+        persist();
+        console.log("tdx_on_rx args " + JSON.stringify(args) + ` from=${from} ref=${ref}`);
+        if (curr_scenario === 'tinydog-list')
+            tdg_load_list();
+        return;
     }
 }

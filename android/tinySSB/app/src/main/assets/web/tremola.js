@@ -163,7 +163,7 @@ function members_confirmed() {
     } else if (prev_scenario == 'tictactoe-list') {
         ttt_new_game_confirmed()
     } else if (prev_scenario == 'tinydog-list') {
-        ttt_new_game_confirmed()
+        tdg_new_game_confirmed()
     }
 }
 
@@ -661,6 +661,8 @@ function b2f_new_event(e) { // incoming SSB log event: we get map with three ent
             }
         } else if (e.public[0] == "TTT")
             ttt_on_rx(e.header.ref, e.header.fid, e.public.slice(1))
+        else if (e.public[0] == "TDG")
+            tdg_on_rx(e.header.ref, e.header.fid, e.public.slice(1))
 
         persist();
         must_redraw = true;
