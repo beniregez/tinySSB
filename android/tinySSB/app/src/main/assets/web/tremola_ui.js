@@ -248,8 +248,8 @@ function setScenario(s) {
             c.innerHTML = "<font size=+1><strong>TinyDog</strong></font><br>Pick or create a new game";
             tdg_load_list();
         }
-        if (s == 'tinydog-game') {
-            console.log("TODO: implement tinydog-game")
+        if (s == 'tinydog-board') {
+            console.log("TODO: implement tinydog-board")
         }
     }
 }

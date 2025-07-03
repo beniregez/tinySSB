@@ -162,6 +162,8 @@ function members_confirmed() {
         menu_new_board_name()
     } else if (prev_scenario == 'tictactoe-list') {
         ttt_new_game_confirmed()
+    } else if (prev_scenario == 'tinydog-list') {
+        ttt_new_game_confirmed()
     }
 }
 
