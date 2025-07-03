@@ -37,11 +37,15 @@ function tdg_load_list() {
 
     for (let id in tremola.tinydog.active) {
         let g = tremola.tinydog.active[id];
-        let others = g.peers.filter(p => p !== myId).map(fid2display).join(" & ");
+        let others = g.participants.filter(p => p !== myId).map(fid2display).join(" & ");
 
         let row = "<div class='contact_item_button light' style='margin: 10px;' onclick='tdg_open_game(\"" + id + "\")'>";
         row += "<strong>TinyDog with " + others + "</strong><br>";
-        row += "Created: " + new Date(g.created).toLocaleString();
+        row += g.state ;
+        if (g.state == 'invited') {
+            row +=
+            " (click here to accept)"
+        }
         row += "</div>";
 
         lst.innerHTML += row;
@@ -54,22 +58,22 @@ function tdg_on_rx(ref, from, args) {
     let ta = tremola.tinydog.active;
 
     if (args[0] == 'N') {
-        let participants = [args[1], args[2], myId];
+        let participants = [from, args[1], args[2]]
+        let peers = [args[1], args[2]];
 
-        if (!participants.includes(myId))
+        if (!peers.includes(myId) && from != myId)
             return; // ignore if not a participant
 
-        let initiator = from;
         let otherPlayers = participants.filter(p => p !== myId);
 
         ta[ref] = {
             'peers': otherPlayers,                    // the other two players
             'participants': participants,             // all 3 player IDs
-            'state': (myId === initiator) ? 'inviting' : 'invited',
-            'close_reason': '',
-            'board': [0,0,0,0,0,0,0,0,0],
+            'state': (myId === from) ? 'inviting' : 'invited',
+//            'close_reason': '',
+//            'board': [0,0,0,0,0,0,0,0,0],
             'cnt': 0,
-            'me_index': participants.indexOf(myId) + 1
+//            'me_index': participants.indexOf(myId) + 1
         };
 
         persist();
