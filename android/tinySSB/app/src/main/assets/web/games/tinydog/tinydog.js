@@ -106,6 +106,33 @@ function tdg_load_board(id) {
         tdg_list_callback(id,'accept');
         return;
     }
+    let t = document.getElementById('tdg_title');
+    if (g.state == 'open') {
+//        let m = (g.cnt % 2 === 0) ? "my turn ..." : "... not my turn";
+        let m = "TODO (not) my turn";
+        t.innerHTML = `<font size=+2><strong>${m}</strong></font>`;
+    } else if (g.state == 'closed') {
+//        let msg = g.close_reason || "Game ended";
+        let msg = "closed";
+        t.innerHTML = `<font size=+2 color=red><strong>${msg}</strong></font>`;
+    } else {
+        t.innerHTML = `<font size=+2><strong>Waiting for players...</strong></font>`;
+    }
+
+    // Show or hide optional footer
+//    let f = document.getElementById('tdg_footer');
+//    f.style.display = (g.state == 'closed') ? 'none' : null;
+
+    // Placeholder for game table
+    let tableContainer = document.getElementById('tdg_table');
+    tableContainer.innerHTML = `
+        <div style="padding: 20px; text-align: center;">
+            <em>(TODO: insert game table here.)</em>
+        </div>
+    `;
+
+    tremola.tinydog.current = id;
+    setScenario('tinydog-board')
 }
 
 function tdg_list_callback(id, action) {

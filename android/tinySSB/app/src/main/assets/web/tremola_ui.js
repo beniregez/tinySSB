@@ -126,6 +126,8 @@ function onBackPressed() {
         setScenario('tictactoe-list')
     else if (curr_scenario == 'tinydog-list')
         setScenario('games')
+    else if (curr_scenario == 'tinydog-board')
+        setScenario('tinydog-list')
 }
 
 function setScenario(s) {
@@ -249,7 +251,12 @@ function setScenario(s) {
             tdg_load_list();
         }
         if (s == 'tinydog-board') {
-            console.log("TODO: implement tinydog-board")
+            document.getElementById("tremolaTitle").style.display = 'none';
+            var c = document.getElementById("conversationTitle");
+            c.style.display = null;
+            let g = tremola.tinydog.active[tremola.tinydog.current];
+            let others = g.participants.filter(p => p !== myId).map(fid2display).join(" & ");
+            c.innerHTML = `<font size=+1><strong>TinyDog with ${others}</strong></font>`;
         }
     }
 }
