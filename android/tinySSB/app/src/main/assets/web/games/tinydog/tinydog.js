@@ -38,8 +38,7 @@ function tdg_load_list() {
     for (let id in tremola.tinydog.active) {
         let g = tremola.tinydog.active[id];
         let others = g.participants.filter(p => p !== myId).map(fid2display).join(" & ");
-
-        let row = "<div class='contact_item_button light' style='margin: 10px;' onclick='tdg_open_game(\"" + id + "\")'>";
+        var row = "<button class='contact_item_button light' onclick='tdg_load_board(\"" + id + "\");' style='overflow: hidden; width: 80%; background-color: #ebf4fa;'>";
         row += "<strong>TinyDog with " + others + "</strong><br>";
         row += g.state ;
         if (g.state == 'invited') {
@@ -70,10 +69,8 @@ function tdg_on_rx(ref, from, args) {
             'peers': otherPlayers,                    // the other two players
             'participants': participants,             // all 3 player IDs
             'state': (myId === from) ? 'inviting' : 'invited',
-//            'close_reason': '',
-//            'board': [0,0,0,0,0,0,0,0,0],
+            'accepted': [],                           // two peers are added here as soon as they accepted
             'cnt': 0,
-//            'me_index': participants.indexOf(myId) + 1
         };
 
         persist();
@@ -82,4 +79,38 @@ function tdg_on_rx(ref, from, args) {
             tdg_load_list();
         return;
     }
+    let g = ta[args[1]];
+    if (args[0] === 'A') {
+        if (!g.accepted.includes(from)) {
+            g.accepted.push(from);
+        }
+
+        if (g.accepted.length === 2) {
+            g.state = 'open';
+        } else {
+            g.state = 'accepted';
+        }
+
+        persist();
+        if (curr_scenario === 'tinydog-list')
+            tdg_load_list();
+        return;
+    }
+}
+
+function tdg_load_board(id) {
+    let g = tremola.tinydog.active[id];
+    if (g.state == 'inviting')
+        return;
+    if (g.state == 'invited') {
+        tdg_list_callback(id,'accept');
+        return;
+    }
+}
+
+function tdg_list_callback(id, action) {
+    let g = tremola.tinydog.active[id]
+    if (action == 'accept')
+        backend('tinydog A ' + id)
+    tdg_load_list();
 }
