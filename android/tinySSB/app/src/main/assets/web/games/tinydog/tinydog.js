@@ -39,16 +39,39 @@ function tdg_load_list() {
         let g = tremola.tinydog.active[id];
         let others = g.participants.filter(p => p !== myId).map(fid2display).join(" & ");
 
-        let item = document.createElement('div'); // äußeres Container-div pro Zeile
+        let item = document.createElement('div'); // Outer Container div per row
 
-        // Left Button (Peers, state / open)
-        let row = `<button class='tdg_list_button' onclick='tdg_load_board("${id}");'
-                        style='overflow: hidden; width: 70%; background-color: #ebf4fa;'>`;
-        row += "<div style='white-space: nowrap;'><div style='text-overflow: ellipsis; overflow: hidden;'>";
-        row += "TinyDog with " + others + "<br>" + g.state;
-        if (g.state === 'invited') {
-            row += " (click here to accept)";
+        let onclickFn = '';
+        if (g.state === "open") {
+            onclickFn = `tdg_load_board("${id}");`;
+        } else if (g.state === "invited" && !g.accepted.includes(myId)) {
+            onclickFn = `tdg_list_callback("${id}", "accept");`;
         }
+        let row = `<button class='tdg_list_button' onclick='${onclickFn}'
+                        style='overflow: hidden; width: 70%; background-color: #ebf4fa;'>`;
+
+        row += "<div style='white-space: nowrap;'><div style='text-overflow: ellipsis; overflow: hidden;'>";
+
+        // Set text in left Button depending on state and accepted
+        let statusText = "";
+        if (g.state === "inviting") {
+            statusText = "waiting for peers to accept...";
+        } else if (g.state === "invited") {
+            if (g.accepted.length === 1 && !g.accepted.includes(myId)) {
+                statusText = "one peer accepted – waiting for you";
+            } else {
+                statusText = "you are invited (click to accept)";
+            }
+        } else if (g.state === "accepted") {
+            statusText = "you accepted – waiting for others...";
+        } else if (g.state === "open") {
+            statusText = "game in progress";
+        } else if (g.state === "closed") {
+            statusText = "game ended";
+        }
+
+        row += `TinyDog with ${others}<br><span style="font-size: smaller;">${statusText}</span>`;
+
         row += "</div></div></button>";
 
         // Right Button (Action)
@@ -118,10 +141,12 @@ function tdg_load_board(id) {
     let g = tremola.tinydog.active[id];
     if (g.state == 'inviting')
         return;
-    if (g.state == 'invited') {
-        tdg_list_callback(id,'accept');
+    if (g.state == 'invited')
         return;
-    }
+//    if (g.state == 'invited') {
+//        tdg_list_callback(id,'accept');
+//        return;
+//    }
     let t = document.getElementById('tdg_title');
     if (g.state == 'open') {
 //        let m = (g.cnt % 2 === 0) ? "my turn ..." : "... not my turn";
