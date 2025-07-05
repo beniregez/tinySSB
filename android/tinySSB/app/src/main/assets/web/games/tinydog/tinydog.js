@@ -67,19 +67,21 @@ function tdg_load_list() {
         } else if (g.state === "open") {
             statusText = "game in progress";
         } else if (g.state === "closed") {
-            statusText = "game ended";
+            statusText = g.close_reason || "game ended";
         }
 
         row += `TinyDog with ${others}<br><span style="font-size: smaller;">${statusText}</span>`;
-
         row += "</div></div></button>";
 
         // Right Button (Action)
-        // TODO handle actions in append-log (backend)
-        let btxt;
-        if (g.state === 'invited')     btxt = 'decline';
-        else if (g.state === 'closed') btxt = 'delete';
-        else                           btxt = 'end';
+        let btxt = '';
+        if (g.state === 'invited') {
+            btxt = 'decline';
+        } else if (g.state === 'closed') {
+            btxt = 'delete';
+        } else {
+            btxt = 'end';
+        }
 
         row += `<button class='tdg_list_button'
                         style='width: 20%; text-align: center;'
@@ -110,6 +112,7 @@ function tdg_on_rx(ref, from, args) {
             'state': (myId === from) ? 'inviting' : 'invited',
             'accepted': [],                           // two peers are added here as soon as they accepted
             'cnt': 0,
+            'close_reason': '',
         };
 
         persist();
@@ -131,10 +134,21 @@ function tdg_on_rx(ref, from, args) {
         }
 
         persist();
-        if (curr_scenario === 'tinydog-list')
-            tdg_load_list();
-        return;
-    }
+
+    } else if (args[0] === 'X') { // decline
+             g.state = 'closed';
+             g.close_reason = 'declined by peer';
+             persist();
+
+     } else if (args[0] === 'E') { // end
+         g.state = 'closed';
+         g.close_reason = 'ended by peer';
+         persist();
+     }
+
+    if (curr_scenario === 'tinydog-list')
+        tdg_load_list();
+    return;
 }
 
 function tdg_load_board(id) {
@@ -143,10 +157,7 @@ function tdg_load_board(id) {
         return;
     if (g.state == 'invited')
         return;
-//    if (g.state == 'invited') {
-//        tdg_list_callback(id,'accept');
-//        return;
-//    }
+
     let t = document.getElementById('tdg_title');
     if (g.state == 'open') {
 //        let m = (g.cnt % 2 === 0) ? "my turn ..." : "... not my turn";
@@ -178,7 +189,17 @@ function tdg_load_board(id) {
 
 function tdg_list_callback(id, action) {
     let g = tremola.tinydog.active[id]
-    if (action == 'accept')
+    if (action == 'accept') {
         backend('tinydog A ' + id)
+    } else if (action == 'decline') {
+             backend('tinydog X ' + id); // decline by peer
+         } else if (action == 'end') {
+             backend('tinydog E ' + id); // end signal from peer
+         } else if (action == 'delete') {
+             delete tremola.tinydog.active[id];
+             tremola.tinydog.closed[id] = g.participants; // move to closed games
+             persist();
+         }
+
     tdg_load_list();
 }
