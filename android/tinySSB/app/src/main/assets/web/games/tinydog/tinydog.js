@@ -103,7 +103,7 @@ function tdg_on_rx(ref, from, args) {
 
         if (g.accepted.length === 2) {
             g.state = 'open';
-        } else {
+        } else if (from === myId) {
             g.state = 'accepted';
         }
 
