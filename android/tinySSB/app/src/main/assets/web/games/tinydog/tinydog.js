@@ -38,16 +38,32 @@ function tdg_load_list() {
     for (let id in tremola.tinydog.active) {
         let g = tremola.tinydog.active[id];
         let others = g.participants.filter(p => p !== myId).map(fid2display).join(" & ");
-        var row = "<button class='contact_item_button light' onclick='tdg_load_board(\"" + id + "\");' style='overflow: hidden; width: 80%; background-color: #ebf4fa;'>";
-        row += "<strong>TinyDog with " + others + "</strong><br>";
-        row += g.state ;
-        if (g.state == 'invited') {
-            row +=
-            " (click here to accept)"
-        }
-        row += "</div>";
 
-        lst.innerHTML += row;
+        let item = document.createElement('div'); // äußeres Container-div pro Zeile
+
+        // Left Button (Peers, state / open)
+        let row = `<button class='tdg_list_button' onclick='tdg_load_board("${id}");'
+                        style='overflow: hidden; width: 70%; background-color: #ebf4fa;'>`;
+        row += "<div style='white-space: nowrap;'><div style='text-overflow: ellipsis; overflow: hidden;'>";
+        row += "TinyDog with " + others + "<br>" + g.state;
+        if (g.state === 'invited') {
+            row += " (click here to accept)";
+        }
+        row += "</div></div></button>";
+
+        // Right Button (Action)
+        // TODO handle actions in append-log (backend)
+        let btxt;
+        if (g.state === 'invited')     btxt = 'decline';
+        else if (g.state === 'closed') btxt = 'delete';
+        else                           btxt = 'end';
+
+        row += `<button class='tdg_list_button'
+                        style='width: 20%; text-align: center;'
+                        onclick='tdg_list_callback("${id}", "${btxt}")'>${btxt}</button>`;
+
+        item.innerHTML = row;
+        lst.appendChild(item);
     }
 }
 
