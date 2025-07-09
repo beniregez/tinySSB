@@ -65,6 +65,22 @@ function tdg_load_list() {
         item.innerHTML = row;
         lst.appendChild(item);
     }
+
+    // === Button for logging of previous Hash (Hex-String) ===
+    let hashButton = document.createElement("button");
+    hashButton.innerText = "Log prevHash in Console";
+    hashButton.style.cssText = "margin-top: 20px; padding: 10px; font-weight: bold; background-color: #dceefb; border: 1px solid #339; border-radius: 6px; cursor: pointer;";
+
+    hashButton.onclick = function () {
+        let hexHash = Android.getPrevHashFromB64(myId);
+        if (hexHash) {
+            console.log("prevHash (hex):", hexHash);
+        } else {
+            console.log("prevHash not available or error calling.");
+        }
+    };
+
+    lst.appendChild(hashButton);
 }
 
 function tdg_load_board(id) {

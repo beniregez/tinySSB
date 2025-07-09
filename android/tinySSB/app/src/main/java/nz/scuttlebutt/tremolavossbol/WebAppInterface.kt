@@ -372,6 +372,32 @@ class WebAppInterface(val act: MainActivity, val webView: WebView) {
         }
     }
 
+    @JavascriptInterface
+    fun getPrevHashFromB64(fid: String): String? {
+        return try {
+            val base64 = fid.removePrefix("@").removeSuffix(".ed25519")
+            val bytes = android.util.Base64.decode(base64, android.util.Base64.DEFAULT)
+
+            val replica = (act as MainActivity).tinyRepo.fid2replica(bytes)
+            if (replica == null) {
+                Log.e("TinyDog", "No replica found for fid.")
+                return null
+            }
+
+            val prev = replica.state?.prev
+            if (prev == null) {
+                Log.e("TinyDog", "No prev hash found in state.")
+                return null
+            }
+
+            prev.joinToString("") { "%02x".format(it) }
+
+        } catch (e: Exception) {
+            Log.e("TinyDog", "Error in getPrevHashFromB64: ${e.message}", e)
+            null
+        }
+    }
+
     fun deleteContact(contactID: String) {
         act.tinyRepo.delete_feed(contactID.decodeHex().toByteArray())
         act.tinyGoset.remove_key(contactID.decodeHex().toByteArray())
