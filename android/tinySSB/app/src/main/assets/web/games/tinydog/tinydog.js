@@ -123,22 +123,23 @@ function tdg_load_board(id) {
 
 // Scenario for choosing two peers (after clicking on plus button)
 function tdg_new_game() {
-    closeOverlay();
-    fill_members_dual(true);
+    closeOverlay(); // Close any open overlay windows (e.g., modals or popups)
+    document.getElementById("div:confirm-members").style.display = 'none'; // Hide confirm button at the start
+
+    fill_members_dual(); // Dynamically build and render the peer selection UI
     prev_scenario = 'tinydog-list';
     setScenario("members");
 
-    document.getElementById("div:textarea").style.display = 'none';
-    document.getElementById("div:confirm-members").style.display = 'flex';
-    document.getElementById("tremolaTitle").style.display = 'none';
+    document.getElementById("tremolaTitle").style.display = 'none';  // Hide app title
 
+    // Show and customize the conversation title area for this scenario
     let c = document.getElementById("conversationTitle");
     c.style.display = null;
     c.innerHTML = "<font size=+1><strong>Launch TinyDog</strong></font><br>Select 2 peers to invite";
-    document.getElementById('plus').style.display = 'none';
+    document.getElementById('plus').style.display = 'none'; // Hide the plus button during peer selection
 }
 
-// Called by OK-Button while choosing peers
+// Called by OK-Button after choosing peers
 function tdg_new_game_confirmed() {
     let selected = [];
     for (let m in tremola.contacts) {

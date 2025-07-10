@@ -207,6 +207,8 @@ function fill_members_onlyone(m) {
 
 function fill_members_dual() {
     let choices = '';
+
+    // Build checkbox UI for each contact
     for (let m in tremola.contacts) {
         let isSelf = (m === myId);
         let disabled = isSelf ? 'disabled checked' : '';
@@ -219,13 +221,20 @@ function fill_members_dual() {
         choices += `<div style="text-overflow: ellipsis; overflow: hidden;"><font size=-2>${m}</font></div>`;
         choices += '</div></label></div>\n';
     }
+    // Insert all checkboxes into the DOM
     document.getElementById('lst:members').innerHTML = choices;
 
-    check_selected_peers(); // initial check
+    // Delay the initial check to ensure all checkboxes are rendered
+    setTimeout(() => {
+        check_selected_peers(); // Now the elements exist in the DOM
+    }, 0);
 }
 
 function check_selected_peers() {
     let count = 0;
+    let confirmBtn = document.getElementById("div:confirm-members");
+
+    // Count how many contacts (excluding self) are selected
     for (let m in tremola.contacts) {
         if (m !== myId) {
             let cb = document.getElementById(m);
@@ -233,7 +242,7 @@ function check_selected_peers() {
         }
     }
 
-    // Only two may be selected
+    // Disable unselected checkboxes if already 2 are selected
     for (let m in tremola.contacts) {
         if (m !== myId) {
             let cb = document.getElementById(m);
@@ -243,8 +252,12 @@ function check_selected_peers() {
         }
     }
 
-    // Show OK-Button only if exactly two are selected.
-    document.getElementById("div:confirm-members").style.display = (count === 2) ? 'flex' : 'none';
+    // Show confirm button only if exactly 2 peers are selected
+    if (count === 2) {
+        confirmBtn.style.display = 'flex'; // Show confirmation
+    } else {
+        confirmBtn.style.display = 'none'; // Hide otherwise
+    }
 }
 
 // --- util
