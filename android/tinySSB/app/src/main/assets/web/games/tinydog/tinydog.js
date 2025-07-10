@@ -345,9 +345,7 @@ function tdg_on_rx(ref, from, args) {
 
         if (g.accepted.length === 2) {
             g.state = 'open';
-            if (games[currentPlayingPlayer] == null) {
-                games[currentPlayingPlayer] = new Game(currentPlayingPlayer);
-            }
+            game = new Game(currentPlayingPlayer);
         } else if (from === myId) {
             g.state = 'accepted';
         }
@@ -364,13 +362,13 @@ function tdg_on_rx(ref, from, args) {
          g.close_reason = 'ended by peer';
          persist();
     } else if (args[0] == REJECT_CARD) {
-        games[currentPlayingPlayer].tdg_on_rx(args);
+        game.tdg_on_rx(args);
     } else if (args[0] == PLAYERS_TURN) {
-        games[currentPlayingPlayer].tdg_on_rx(args);
+        game.tdg_on_rx(args);
     } else if (args[0] == DRAW_FROM_CHEAT_CARDS) {
-        games[currentPlayingPlayer].tdg_on_rx(args);
+        game.tdg_on_rx(args);
     } else if (args[0] == DRAW_FROM_NORMAL_CARDS) {
-        games[currentPlayingPlayer].tdg_on_rx(args);
+        game.tdg_on_rx(args);
     }
     if (curr_scenario === 'tinydog-list')
         tdg_load_list();
@@ -1253,9 +1251,6 @@ class Game{
 }
 
 let game = null;
-let games = {
-    currentPlayingPlayer: game
-};
 
 class ElementManager {
 
@@ -1326,7 +1321,7 @@ function getMessage() {
         HTML_MESSAGE = " ";
         return returnMessage;
     } else {
-        let message = games[currentPlayingPlayer].getMessage();
+        let message = game.getMessage();
         return message;
     }
 }
@@ -1348,7 +1343,7 @@ function neutralizeMessage(id) {
 // regular boxes
 let regularBoxesHTML = [];
 function initializeBoxes() {
-    let board = games[currentPlayingPlayer].getBoard();
+    let board = game.getBoard();
     for (let i=0;i<=47;i++) {
         let id = "box" + i.toString();
         regularBoxesHTML.push(id);
@@ -1357,7 +1352,7 @@ function initializeBoxes() {
     }
 }
 function updateBoxes() {
-    let board = games[currentPlayingPlayer].getBoard();
+    let board = game.getBoard();
     for (let i=0;i<=47;i++) {
         let id = "box" + i.toString();
         ElementManager.display(id,board[i]);
@@ -1367,7 +1362,7 @@ function updateBoxes() {
 // home fields
 let homeFieldsHTML = [];
 function initializeHomefields() {
-    let homeFields = games[currentPlayingPlayer].getHomefields();
+    let homeFields = game.getHomefields();
     for (let p=1;p<4;p++) {
         for (let h=1;h<5;h++) {
             let id = "p" + p + "h" + h;
@@ -1378,7 +1373,7 @@ function initializeHomefields() {
     }
 }
 function updateHomefields() {
-    let homeFields = games[currentPlayingPlayer].getHomefields();
+    let homeFields = game.getHomefields();
     for (let p=1;p<4;p++) {
         for (let h=1;h<5;h++) {
             let id = "p" + p + "h" + h;
@@ -1390,7 +1385,7 @@ function updateHomefields() {
 // win fields
 let winFieldsHTML = [];
 function initializeWinfields() {
-    let winfields = games[currentPlayingPlayer].getWinfields();
+    let winfields = game.getWinfields();
     for (let p=1;p<4;p++) {
         for (let w=1;w<5;w++) {
             let id = "p" + p + "w" + w;
@@ -1401,7 +1396,7 @@ function initializeWinfields() {
     }
 }
 function updateeWinfields() {
-    let winfields = games[currentPlayingPlayer].getWinfields();
+    let winfields = game.getWinfields();
     for (let p=1;p<4;p++) {
         for (let w=1;w<5;w++) {
             let id = "p" + p + "w" + w;
@@ -1416,7 +1411,7 @@ let circleHTML = [];
 // cards
 let cardsHTML = [];
 function initializeCards() {
-    let cards = games[currentPlayingPlayer].getPlayerCards();
+    let cards = game.getPlayerCards();
     for (let p=1;p<4;p++) {
         for (let c=1;c<7;c++) {
             let id = "p" + p + "c" + c;
@@ -1427,7 +1422,7 @@ function initializeCards() {
     }
 }
 function updateeCards() {
-    let cards = games[currentPlayingPlayer].getPlayerCards();
+    let cards = game.getPlayerCards();
     for (let p=1;p<4;p++) {
         for (let c=1;c<7;c++) {
             let id = "p" + p + "c" + c;
@@ -1446,7 +1441,7 @@ function onBoxClick(id) {
         } else {
             console.log("Developer error: Field id is not valid.")
         }
-        games[currentPlayingPlayer].choosesMarble(currentPlayingPlayer, 0, fieldNo+1, wantsToEnterGoalField, wantsToGoBack)
+        game.choosesMarble(currentPlayingPlayer, 0, fieldNo+1, wantsToEnterGoalField, wantsToGoBack)
     } else if (containsObject(id, homeFieldsHTML)) {
         let fieldOwner = parseInt(id[1]);
         let fieldNo = parseInt(id[3]);
@@ -1454,7 +1449,7 @@ function onBoxClick(id) {
             displayHTML_message("These are not your fields.");
             return
         }
-        games[currentPlayingPlayer].choosesMarble(currentPlayingPlayer, -1, fieldNo, wantsToEnterGoalField, wantsToGoBack);
+        game.choosesMarble(currentPlayingPlayer, -1, fieldNo, wantsToEnterGoalField, wantsToGoBack);
     } else if (containsObject(id, winFieldsHTML)) {
         let fieldOwner = parseInt(id[1]);
         let fieldNo = parseInt(id[3]);
@@ -1462,9 +1457,9 @@ function onBoxClick(id) {
             displayHTML_message("These are not your fields.");
             return
         }
-        games[currentPlayingPlayer].choosesMarble(currentPlayingPlayer, 1, fieldNo, wantsToEnterGoalField, wantsToGoBack);
+        game.choosesMarble(currentPlayingPlayer, 1, fieldNo, wantsToEnterGoalField, wantsToGoBack);
     } else if (containsObject(id, circleHTML)) {
-        games[currentPlayingPlayer].wantsToRejectCard(currentPlayingPlayer);
+        game.wantsToRejectCard(currentPlayingPlayer);
     } else if (containsObject(id, cardsHTML)) {
         let cardOwner = parseInt(id[1]);
         if (cardOwner != currentPlayingPlayer) {
@@ -1472,7 +1467,7 @@ function onBoxClick(id) {
             return
         }
         let cardNo = parseInt(id[3]);
-        games[currentPlayingPlayer].choosesCard(currentPlayingPlayer, cardNo);
+        game.choosesCard(currentPlayingPlayer, cardNo);
     } else {
         console.log(`Developer error: This function should have not been invoked with id ${id}`);
     }
