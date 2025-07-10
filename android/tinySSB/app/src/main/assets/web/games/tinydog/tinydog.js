@@ -203,17 +203,6 @@ function tdg_load_board(id) {
                 <div class="card" id="p1c3"></div><div class="card" id="p1c2"></div><div class="card" id="p1c1"></div>
                 </div>
 
-                <!-- choose playing player -->
-                <div class="triangle-side choose-player">
-                <div class="choose-player-box" id="p1"></div>
-                <div class="choose-player-box" id="p2"></div>
-                <div class="choose-player-box" id="p3"></div>
-                </div>
-
-                <div class="triangle-side display-player">
-                <div class="box" id="dp"></div>
-                </div>
-
                 <!-- messages to player -->
                 <div class="triangle-side message-position">
                 <div class="message" id="m"></div>
@@ -307,6 +296,8 @@ function tdg_new_game_confirmed() {
         setScenario('tinydog-list');
 }
 
+let currentPlayingPlayer = -1;
+
 // Called when tinydog-specific messages are received
 function tdg_on_rx(ref, from, args) {
     if (typeof tremola.tinydog == "undefined")
@@ -317,6 +308,14 @@ function tdg_on_rx(ref, from, args) {
     if (args[0] == 'N') {
         let participants = [from, args[1], args[2]]
         let peers = [args[1], args[2]];
+
+        if (from == myId) {
+            currentPlayingPlayer = 1;
+        } else if (args[1] == myId) {
+            currentPlayingPlayer = 2;
+        } else if (args[2] == myId) {
+            currentPlayingPlayer = 3;
+        }
 
         if (!peers.includes(myId) && from != myId)
             return; // ignore if not a participant
@@ -346,6 +345,9 @@ function tdg_on_rx(ref, from, args) {
 
         if (g.accepted.length === 2) {
             g.state = 'open';
+            if (games[currentPlayingPlayer] == null) {
+                games[currentPlayingPlayer] = new Game(currentPlayingPlayer);
+            }
         } else if (from === myId) {
             g.state = 'accepted';
         }
@@ -357,12 +359,19 @@ function tdg_on_rx(ref, from, args) {
              g.close_reason = 'declined by peer';
              persist();
 
-     } else if (args[0] === 'E') { // end
+    } else if (args[0] === 'E') { // end
          g.state = 'closed';
          g.close_reason = 'ended by peer';
          persist();
-     }
-
+    } else if (args[0] == REJECT_CARD) {
+        games[currentPlayingPlayer].tdg_on_rx(args);
+    } else if (args[0] == PLAYERS_TURN) {
+        games[currentPlayingPlayer].tdg_on_rx(args);
+    } else if (args[0] == DRAW_FROM_CHEAT_CARDS) {
+        games[currentPlayingPlayer].tdg_on_rx(args);
+    } else if (args[0] == DRAW_FROM_NORMAL_CARDS) {
+        games[currentPlayingPlayer].tdg_on_rx(args);
+    }
     if (curr_scenario === 'tinydog-list')
         tdg_load_list();
     return;
@@ -781,6 +790,10 @@ class Gameboard {
 
 let CHEATING = false;
 let TINYDOG_COMMAND = "tinydog";
+let REJECT_CARD = "R";
+let PLAYERS_TURN = "P";
+let DRAW_FROM_CHEAT_CARDS = "C";
+let DRAW_FROM_NORMAL_CARDS = "D";
 class Game{
     playerblue;
     playergreen;
@@ -931,13 +944,13 @@ class Game{
                             chosenNumbersString = chosenNumbersString + " " + chosenNumbers[i];
                         }
                         let needsToReplicate = this.get_needs_to_replicate();
-                        this.backend(TINYDOG_COMMAND + " " + this.DRAW_FROM_NORMAL_CARDS + " " + needsToReplicate + chosenNumbersString);
+                        this.backend(TINYDOG_COMMAND + " " + DRAW_FROM_NORMAL_CARDS + " " + needsToReplicate + chosenNumbersString);
                     } else {
                         for (let i = 0; i < this.players.length; i++) {
                             this.cheatCards(this.players[i]);
                         }
                         let needsToReplicate = this.get_needs_to_replicate();
-                        this.backend(TINYDOG_COMMAND + " " + this.DRAW_FROM_CHEAT_CARDS + " " + needsToReplicate);
+                        this.backend(TINYDOG_COMMAND + " " + DRAW_FROM_CHEAT_CARDS + " " + needsToReplicate);
                     }
                 } else {
                     this.message = "Cannot choose this card. Choose again.";
@@ -1002,7 +1015,7 @@ class Game{
                 let goBackBit = wantsToGoBack? 1: 0;
                 let [worked, returnMessage] = this.playersturn(player, figure, this.chosenCard, wantsToEnterGoalField, wantsToGoBack);
                 if (worked) {
-                    this.backend(TINYDOG_COMMAND + " " + this.PLAYERS_TURN + " " + needs_to_replicate + " " + playerNo + " " + figure.getID() + " " + this.chosenCard + " " + enterBit + " " + goBackBit);
+                    this.backend(TINYDOG_COMMAND + " " + PLAYERS_TURN + " " + needs_to_replicate + " " + playerNo + " " + figure.getID() + " " + this.chosenCard + " " + enterBit + " " + goBackBit);
                     this.nextPlayer(player);
                 } else {
                     this.message = returnMessage;
@@ -1027,7 +1040,7 @@ class Game{
         if (this.checkPlayerAndFinished(playerNo)) {
             if (this.chosenCard != -1) {
                 let needs_to_replicate = this.get_needs_to_replicate();
-                this.backend(TINYDOG_COMMAND + " " + this.REJECT_CARD + " " + needs_to_replicate + " " + playerNo + " " + this.chosenCard);
+                this.backend(TINYDOG_COMMAND + " " + REJECT_CARD + " " + needs_to_replicate + " " + playerNo + " " + this.chosenCard);
                 // call this.rejectCard() after calling backend since this.rejectCard makes changes to this.chosenCard
                 this.rejectCard(playerNo, this.chosenCard);
             } else {
@@ -1186,45 +1199,35 @@ class Game{
         }
     }
 
-    REJECT_CARD = "R";
-    PLAYERS_TURN = "P";
-    DRAW_FROM_CHEAT_CARDS = "C";
-    DRAW_FROM_NORMAL_CARDS = "D";
-
-    tdg_on_rx(command) {
-        let arr = command.split(" ");
-        if (arr[0]!=TINYDOG_COMMAND) {
-            console.log(`Developer error: unknown command ${TINYDOG_COMMAND}`);
-            return
-        }
-        switch(arr[1]) {
-            case this.REJECT_CARD:
-                if (this.checkIfINeedToReplicate(arr[2])) {
-                    this.rejectCard(arr[3], arr[4]);
+    tdg_on_rx(arr) {
+        switch(arr[0]) {
+            case REJECT_CARD:
+                if (this.checkIfINeedToReplicate(arr[1])) {
+                    this.rejectCard(arr[2], arr[3]);
                 }
                 break
-            case this.PLAYERS_TURN:
-                if (this.checkIfINeedToReplicate(arr[2])) {
-                    let player = this.players[parseInt(arr[3])-1];
-                    let figure = player.getPawns()[parseInt(arr[4])];
-                    let chosenCard = parseInt(arr[5]);
-                    let wantsToEnterGoalField = parseInt(arr[6]) == 1? true: false;
-                    let wantsToGoBack = parseInt(arr[7]) == 1? true: false;
+            case PLAYERS_TURN:
+                if (this.checkIfINeedToReplicate(arr[1])) {
+                    let player = this.players[parseInt(arr[2])-1];
+                    let figure = player.getPawns()[parseInt(arr[3])];
+                    let chosenCard = parseInt(arr[4]);
+                    let wantsToEnterGoalField = parseInt(arr[5]) == 1? true: false;
+                    let wantsToGoBack = parseInt(arr[6]) == 1? true: false;
                     this.playersturn(player, figure, chosenCard, wantsToEnterGoalField, wantsToGoBack);
                     this.nextPlayer(player);
                 }
                 break
-            case this.DRAW_FROM_NORMAL_CARDS:
-                if (this.checkIfINeedToReplicate(arr[2])) {
+            case DRAW_FROM_NORMAL_CARDS:
+                if (this.checkIfINeedToReplicate(arr[1])) {
                     let chosenNumbers = [];
-                    for (let i = 3; i < arr.length; i++) {
+                    for (let i = 2; i < arr.length; i++) {
                         chosenNumbers.push(parseInt(arr[i]));
                     }
                     this.distribute(chosenNumbers);
                 }
                 break
-            case this.DRAW_FROM_CHEAT_CARDS:
-                if (this.checkIfINeedToReplicate(arr[2])) {
+            case DRAW_FROM_CHEAT_CARDS:
+                if (this.checkIfINeedToReplicate(arr[1])) {
                     for (let i = 0; i < this.players.length; i++) {
                         this.cheatCards(this.players[i]);
                     }
@@ -1245,20 +1248,13 @@ class Game{
     }
 
     backend(command) {
-        game1.tdg_on_rx(command);
-        game2.tdg_on_rx(command);
-        game3.tdg_on_rx(command);
+        backend(command);
     }
 }
 
-
-let game1 = new Game(1);
-let game2 = new Game(2);
-let game3 = new Game(3);
+let game = null;
 let games = {
-    1: game1,
-    2: game2,
-    3: game3
+    currentPlayingPlayer: game
 };
 
 class ElementManager {
@@ -1290,19 +1286,6 @@ class ElementManager {
   }
 }
 
-// manage current playing player
-// ######################################
-let currentPlayingPlayer = 1;
-
-function changeCurrentPlayingPlayer(i) {
-    if (i!=1 && i!=2 && i!=3) {
-        console.log(`Developer error: current playing player "${id}" is not defined`)
-    }
-    currentPlayingPlayer = i;
-    ElementManager.display("dp", `${currentPlayingPlayer}`);
-    updateBoard();
-}
-// ######################################
 
 // // manage the fields "want to go back" and "want to enter goal fields"
 // // ######################################
@@ -1505,18 +1488,6 @@ function updateBoard() {
 }
 
 function initialize_board() {
-    // choose current playing player
-    for (let i=1;i<4;i++) {
-        let id = "p" + i;
-        ElementManager.display(id, id);
-        ElementManager.addEventListener(id, changeCurrentPlayingPlayer, [i]);
-    }
-
-    // display current playing player
-    for (let i=1;i<2;i++) {
-        let id = "dp";
-        ElementManager.display(id, `${currentPlayingPlayer}`);
-    }
 
     // want to go back button
     for (let i=1;i<2;i++) {
