@@ -222,48 +222,15 @@ function tdg_load_board(id) {
         </div>
     `;
 
-    initialize_board();
-    // let btn = document.getElementById("circle");
-    // btn.onclick = function() {
-    //     let w = new welt();
-    //     let mes = w.getH().print();
-    //     let el = document.getElementById("circle");
-    //     el.textContent = mes;
-    // }
-
     tremola.tinydog.current = id;
+    if (game == null) {
+        games[tremola.tinydog.current] = new Game(currentPlayingPlayer);
+        initialize_board();
+    } else {
+        updateBoard();
+    }
     setScenario('tinydog-board')
 }
-
-// class hoi{
-//     text
-//     constructor() {
-//         this.text = "4";
-//     }
-    
-//     print() {
-//         return do_print();
-//     }
-//     getText() {
-//         return this.text;
-//     }
-// }
-
-// class welt{
-//     h;
-//     constructor() {
-//         this.h = new hoi();
-//     }
-//     getH() {
-//         return this.h;
-//     }
-// }
-
-// let hh = new hoi();
-
-// function do_print() {
-//     return hh.getText();
-// }
 
 // Scenario for choosing two peers (after clicking on plus button)
 function tdg_new_game() {
@@ -329,6 +296,7 @@ function tdg_on_rx(ref, from, args) {
             'accepted': [],                           // two peers are added here as soon as they accepted
             'cnt': 0,
             'close_reason': '',
+            'game': null,
         };
 
         persist();
@@ -345,7 +313,6 @@ function tdg_on_rx(ref, from, args) {
 
         if (g.accepted.length === 2) {
             g.state = 'open';
-            game = new Game(currentPlayingPlayer);
         } else if (from === myId) {
             g.state = 'accepted';
         }
@@ -362,13 +329,13 @@ function tdg_on_rx(ref, from, args) {
          g.close_reason = 'ended by peer';
          persist();
     } else if (args[0] == REJECT_CARD) {
-        game.tdg_on_rx(args);
+        games[tremola.tinydog.current].tdg_on_rx(args);
     } else if (args[0] == PLAYERS_TURN) {
-        game.tdg_on_rx(args);
+        games[tremola.tinydog.current].tdg_on_rx(args);
     } else if (args[0] == DRAW_FROM_CHEAT_CARDS) {
-        game.tdg_on_rx(args);
+        games[tremola.tinydog.current].tdg_on_rx(args);
     } else if (args[0] == DRAW_FROM_NORMAL_CARDS) {
-        game.tdg_on_rx(args);
+        games[tremola.tinydog.current].tdg_on_rx(args);
     }
     if (curr_scenario === 'tinydog-list')
         tdg_load_list();
@@ -1251,6 +1218,7 @@ class Game{
 }
 
 let game = null;
+let games = {};
 
 class ElementManager {
 
@@ -1321,7 +1289,7 @@ function getMessage() {
         HTML_MESSAGE = " ";
         return returnMessage;
     } else {
-        let message = game.getMessage();
+        let message = games[tremola.tinydog.current].getMessage();
         return message;
     }
 }
@@ -1343,7 +1311,7 @@ function neutralizeMessage(id) {
 // regular boxes
 let regularBoxesHTML = [];
 function initializeBoxes() {
-    let board = game.getBoard();
+    let board = games[tremola.tinydog.current].getBoard();
     for (let i=0;i<=47;i++) {
         let id = "box" + i.toString();
         regularBoxesHTML.push(id);
@@ -1352,7 +1320,7 @@ function initializeBoxes() {
     }
 }
 function updateBoxes() {
-    let board = game.getBoard();
+    let board = games[tremola.tinydog.current].getBoard();
     for (let i=0;i<=47;i++) {
         let id = "box" + i.toString();
         ElementManager.display(id,board[i]);
@@ -1362,7 +1330,7 @@ function updateBoxes() {
 // home fields
 let homeFieldsHTML = [];
 function initializeHomefields() {
-    let homeFields = game.getHomefields();
+    let homeFields = games[tremola.tinydog.current].getHomefields();
     for (let p=1;p<4;p++) {
         for (let h=1;h<5;h++) {
             let id = "p" + p + "h" + h;
@@ -1373,7 +1341,7 @@ function initializeHomefields() {
     }
 }
 function updateHomefields() {
-    let homeFields = game.getHomefields();
+    let homeFields = games[tremola.tinydog.current].getHomefields();
     for (let p=1;p<4;p++) {
         for (let h=1;h<5;h++) {
             let id = "p" + p + "h" + h;
@@ -1385,7 +1353,7 @@ function updateHomefields() {
 // win fields
 let winFieldsHTML = [];
 function initializeWinfields() {
-    let winfields = game.getWinfields();
+    let winfields = games[tremola.tinydog.current].getWinfields();
     for (let p=1;p<4;p++) {
         for (let w=1;w<5;w++) {
             let id = "p" + p + "w" + w;
@@ -1396,7 +1364,7 @@ function initializeWinfields() {
     }
 }
 function updateeWinfields() {
-    let winfields = game.getWinfields();
+    let winfields = games[tremola.tinydog.current].getWinfields();
     for (let p=1;p<4;p++) {
         for (let w=1;w<5;w++) {
             let id = "p" + p + "w" + w;
@@ -1411,7 +1379,7 @@ let circleHTML = [];
 // cards
 let cardsHTML = [];
 function initializeCards() {
-    let cards = game.getPlayerCards();
+    let cards = games[tremola.tinydog.current].getPlayerCards();
     for (let p=1;p<4;p++) {
         for (let c=1;c<7;c++) {
             let id = "p" + p + "c" + c;
@@ -1422,7 +1390,7 @@ function initializeCards() {
     }
 }
 function updateeCards() {
-    let cards = game.getPlayerCards();
+    let cards = games[tremola.tinydog.current].getPlayerCards();
     for (let p=1;p<4;p++) {
         for (let c=1;c<7;c++) {
             let id = "p" + p + "c" + c;
@@ -1441,7 +1409,7 @@ function onBoxClick(id) {
         } else {
             console.log("Developer error: Field id is not valid.")
         }
-        game.choosesMarble(currentPlayingPlayer, 0, fieldNo+1, wantsToEnterGoalField, wantsToGoBack)
+        games[tremola.tinydog.current].choosesMarble(currentPlayingPlayer, 0, fieldNo+1, wantsToEnterGoalField, wantsToGoBack)
     } else if (containsObject(id, homeFieldsHTML)) {
         let fieldOwner = parseInt(id[1]);
         let fieldNo = parseInt(id[3]);
@@ -1449,7 +1417,7 @@ function onBoxClick(id) {
             displayHTML_message("These are not your fields.");
             return
         }
-        game.choosesMarble(currentPlayingPlayer, -1, fieldNo, wantsToEnterGoalField, wantsToGoBack);
+        games[tremola.tinydog.current].choosesMarble(currentPlayingPlayer, -1, fieldNo, wantsToEnterGoalField, wantsToGoBack);
     } else if (containsObject(id, winFieldsHTML)) {
         let fieldOwner = parseInt(id[1]);
         let fieldNo = parseInt(id[3]);
@@ -1457,9 +1425,9 @@ function onBoxClick(id) {
             displayHTML_message("These are not your fields.");
             return
         }
-        game.choosesMarble(currentPlayingPlayer, 1, fieldNo, wantsToEnterGoalField, wantsToGoBack);
+        games[tremola.tinydog.current].choosesMarble(currentPlayingPlayer, 1, fieldNo, wantsToEnterGoalField, wantsToGoBack);
     } else if (containsObject(id, circleHTML)) {
-        game.wantsToRejectCard(currentPlayingPlayer);
+        games[tremola.tinydog.current].wantsToRejectCard(currentPlayingPlayer);
     } else if (containsObject(id, cardsHTML)) {
         let cardOwner = parseInt(id[1]);
         if (cardOwner != currentPlayingPlayer) {
@@ -1467,7 +1435,7 @@ function onBoxClick(id) {
             return
         }
         let cardNo = parseInt(id[3]);
-        game.choosesCard(currentPlayingPlayer, cardNo);
+        games[tremola.tinydog.current].choosesCard(currentPlayingPlayer, cardNo);
     } else {
         console.log(`Developer error: This function should have not been invoked with id ${id}`);
     }
