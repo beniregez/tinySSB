@@ -223,7 +223,7 @@ function tdg_load_board(id) {
     `;
 
     tremola.tinydog.current = id;
-    if (tremola.tinydog.active[tremola.tinydog.current].game == null) {
+    if (tremola.tinydog.active[tremola.tinydog.current].game[0] == null) {
         tremola.tinydog.active[tremola.tinydog.current].game = new Game(currentPlayingPlayer);
         initialize_board();
     } else {
@@ -296,7 +296,7 @@ function tdg_on_rx(ref, from, args) {
             'accepted': [],                           // two peers are added here as soon as they accepted
             'cnt': 0,
             'close_reason': '',
-            'game': null,
+            'game': [null, [currentPlayingPlayer]],
         };
 
         persist();
