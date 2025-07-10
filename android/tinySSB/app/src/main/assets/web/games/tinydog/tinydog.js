@@ -65,38 +65,37 @@ function tdg_load_list() {
         item.innerHTML = row;
         lst.appendChild(item);
     }
-
-    // === Button for logging of previous Hash (Hex-String) ===
-    let hashButton = document.createElement("button");
-    hashButton.innerText = "Log prevHash in Console";
-    hashButton.style.cssText = "margin-top: 20px; padding: 10px; font-weight: bold; background-color: #dceefb; border: 1px solid #339; border-radius: 6px; cursor: pointer;";
-
-    hashButton.onclick = function () {
-        let hexHash = Android.getPrevHashFromB64(myId);
-        if (hexHash) {
-            console.log("prevHash (hex):", hexHash);
-        } else {
-            console.log("prevHash not available or error calling.");
-        }
-    };
-
-    lst.appendChild(hashButton);
 }
 
 function tdg_load_board(id) {
     let g = tremola.tinydog.active[id];
-    if (g.state == 'inviting')
-        return;
-    if (g.state == 'invited')
+    if (g.state == 'inviting' || g.state == 'invited')
         return;
 
     let t = document.getElementById('tdg_title');
+    let titleHTML = "";
+
     if (g.state == 'open') {
-//        let m = (g.cnt % 2 === 0) ? "my turn ..." : "... not my turn";
-        let m = "TODO (not) my turn";
-        t.innerHTML = `<font size=+2><strong>${m}</strong></font>`;
+        // Decide order and who's turn it is
+        let currentTurnIndex = g.cnt % 3;
+        let currentPlayerId = g.order[currentTurnIndex];
+        let currentPlayer = g.participants[currentPlayerId];
+
+        // Turn display
+        if (currentPlayer === myId) {
+            titleHTML += `<font size="+2"><strong>My turn</strong></font>`;
+        } else {
+            titleHTML += `<font size="+2"><strong>${fid2display(currentPlayer)}'s turn</strong></font>`;
+        }
+        // Order display
+        let orderDisplay = g.order.map(idx => {
+            let pID = g.participants[idx];
+            return (pID === myId) ? "You" : fid2display(pID);
+        }).join(" → ");
+
+        titleHTML += `<br><span style="font-size: smaller;">${orderDisplay}</span>`;
+
     } else if (g.state == 'closed') {
-//        let msg = g.close_reason || "Game ended";
         let msg = "closed";
         t.innerHTML = `<font size=+2 color=red><strong>${msg}</strong></font>`;
     } else {
@@ -107,13 +106,16 @@ function tdg_load_board(id) {
 //    let f = document.getElementById('tdg_footer');
 //    f.style.display = (g.state == 'closed') ? 'none' : null;
 
-    // Placeholder for game table
+    // Game table
     let tableContainer = document.getElementById('tdg_table');
+
     tableContainer.innerHTML = `
         <div style="padding: 20px; text-align: center;">
             <em>(TODO: insert game table here.)</em>
         </div>
     `;
+
+    t.innerHTML = titleHTML;
 
     tremola.tinydog.current = id;
     setScenario('tinydog-board')
@@ -143,8 +145,8 @@ function tdg_new_game_confirmed() {
         if (m !== myId && document.getElementById(m).checked)
             selected.push(m);
     }
-
-    backend("tinydog N " + selected[0] + " " + selected[1])
+    let prevHash = getPrevHash(myId)
+    backend("tinydog N " + selected[0] + " " + selected[1] + " " + prevHash)
 
     if (curr_scenario === 'members')
         setScenario('tinydog-list');
@@ -165,10 +167,13 @@ function tdg_on_rx(ref, from, args) {
             return; // ignore if not a participant
 
         let otherPlayers = participants.filter(p => p !== myId);
+        let fromHash = args[3]
 
         ta[ref] = {
             'peers': otherPlayers,                    // the other two players
             'participants': participants,             // all 3 player IDs
+            'hashes': [fromHash, null, null],         // 3 prevHashes, same order as in participants
+            'order': [null, null, null],              // order of players. Will be determined after all accepted
             'state': (myId === from) ? 'inviting' : 'invited',
             'accepted': [],                           // two peers are added here as soon as they accepted
             'cnt': 0,
@@ -185,10 +190,17 @@ function tdg_on_rx(ref, from, args) {
     if (args[0] === 'A') {
         if (!g.accepted.includes(from)) {
             g.accepted.push(from);
+            let idx = g.participants.indexOf(from);
+            if (idx >= 0 && args[2]) {
+                g.hashes[idx] = args[2]; // args[2] contains prevHash
+            }
         }
 
         if (g.accepted.length === 2) {
             g.state = 'open';
+            let idx = hexHashModulo(g.hashes[0], g.hashes[1], g.hashes[2]);
+            let orders = [[0, 1, 2], [0, 2, 1], [1, 0, 2], [1, 2, 0], [2, 0, 1], [2, 1, 0]];
+            g.order = orders[idx];
         } else if (from === myId) {
             g.state = 'accepted';
         }
@@ -215,7 +227,8 @@ function tdg_on_rx(ref, from, args) {
 function tdg_list_callback(id, action) {
     let g = tremola.tinydog.active[id]
     if (action == 'accept') {
-        backend('tinydog A ' + id) // accept
+        let prevHash = getPrevHash(myId)
+        backend('tinydog A ' + id + ' ' + prevHash) // accept game and send own prevHash
     } else if (action == 'decline') {
              backend('tinydog X ' + id); // decline
          } else if (action == 'end') {
@@ -227,4 +240,33 @@ function tdg_list_callback(id, action) {
          }
 
     tdg_load_list();
+}
+
+// Get hash of previous log entry from specific replica (pID)
+function getPrevHash(pID) {
+    let hexHash = Android.getPrevHashFromB64(pID);
+    if (!hexHash) {
+        hexHash = "0000000000000000000000000000000000000000";
+    }
+    return hexHash;
+}
+
+// Calculate an integer between 0 and 5 by hashing the three hash values of 3 participants
+function hexHashModulo(hex1, hex2, hex3) {
+    const isValidHex = hex => /^[0-9a-fA-F]{40}$/.test(hex);
+    if (![hex1, hex2, hex3].every(isValidHex)) {
+        throw new Error("Every Entry must be a valid hex number with 40 digits.");
+    }
+
+    // Combine all hashes to one string
+    const combined = hex1 + hex2 + hex3;
+
+    // FNV-1a 32-bit Hash
+    let hash = 0x811c9dc5; // Offset basis
+    for (let i = 0; i < combined.length; i++) {
+        hash ^= combined.charCodeAt(i);
+        hash = (hash * 0x01000193) >>> 0; // 32-bit unsigned
+    }
+
+    return hash % 6;
 }
