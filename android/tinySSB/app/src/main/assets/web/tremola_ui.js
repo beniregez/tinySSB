@@ -248,7 +248,10 @@ function setScenario(s) {
             var c = document.getElementById("conversationTitle");
             c.style.display = null;
             c.innerHTML = "<font size=+1><strong>TinyDog</strong></font><br>Pick or create a new game";
-            tdg_load_list();
+            setTimeout(() => {
+                tdg_load_list();
+            }, 0);
+            // tdg_load_list();
         }
         if (s == 'tinydog-board') {
             document.getElementById("tremolaTitle").style.display = 'none';

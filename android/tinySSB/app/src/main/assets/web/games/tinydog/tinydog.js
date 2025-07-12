@@ -317,7 +317,9 @@ function tdg_on_rx(ref, from, args) {
         persist();
         console.log("tdx_on_rx args " + JSON.stringify(args) + ` from=${from} ref=${ref}`);
         if (curr_scenario === 'tinydog-list')
-            tdg_load_list();
+            setTimeout(() => {
+                tdg_load_list();
+            }, 0);
         return;
     }
     let g = ta[args[1]];
@@ -367,13 +369,13 @@ function tdg_on_rx(ref, from, args) {
 function who_am_I(id) {
     let ta = tremola.tinydog.active;
     if (ta[id].participants[0] == myId) {
-        return 1
+        return ta[id].order[0]+1
     }
     if (ta[id].participants[1] == myId) {
-        return 2
+        return ta[id].order[1]+1
     }
     if (ta[id].participants[2] == myId) {
-        return 3
+        return ta[id].order[2]+1
     }
 }
 
