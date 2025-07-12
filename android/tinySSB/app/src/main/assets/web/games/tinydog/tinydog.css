@@ -15,8 +15,8 @@
   left: 5%;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  width: 90%;
-  height: 90vw;
+  width: 500px;
+  height: 500px;
   background-color: #ebf4fa;
   border-radius: 16pt;
   padding: 2vw;
@@ -32,3 +32,228 @@
   overflow: hidden;
   border-radius: 8pt;
 }
+
+/* ##################################### */
+/* Gameboard */
+/* ##################################### */
+
+    body {
+      background: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    /* Abstract container containing all the different elements. */
+    .container {
+      position: relative;
+      width: 400px;
+      height: 400px;
+      border: 1px solid black;
+    }
+
+    /* a signle box for marbles */
+    .box {
+      width: 10px;
+      height: 10px;
+      font-size: 7px;
+      text-align: center;
+      background: transparent;
+      border: 1px solid black;
+    }
+
+    /* a signle box for marbles */
+    .message {
+      width: 150px;
+      height: 20px;
+      font-size: 7px;
+      text-align: center;
+      background: transparent;
+      border: 1px solid black;
+    }
+
+    .choose-player-box {
+      width: 20px;
+      height: 20px;
+      font-size: 7px;
+      text-align: center;
+      background: transparent;
+      border: 1px solid black;
+    }
+
+    .user-decision {
+      width: 80px;
+      height: 15px;
+      font-size: 7px;
+      text-align: center;
+      background: transparent;
+      border: 1px solid black;
+    }
+
+    /* cards */
+    .card {
+      width: 30px;
+      height: 30px;
+      background: transparent;
+      border: 1px solid black;
+    }
+
+    /* defines some properties of triangle side */
+    .triangle-side {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      gap: 2px; /* gap between boxes */
+    }
+
+    /*
+    Position of box rows:
+
+    A row of boxes in this document is created vertically.
+    You can see this by "flex-direction: column;". For rows
+    it is analogous.
+    Using the operator:
+    *   "left: 0px;" would align left side of the box column
+        with the left side of the container.
+    *   "left: somePosNumberpx;" would shift the box column such
+        that the left side of the box column is shifted to the
+        right by somePosNumberpx.
+    *   "left: -somePosNumberpx;" would shift the box column such
+        that the left side of the box column is shifted to the
+        left by somePosNumberpx.
+    For rotated box column it is as follows. First the box column
+    is kept vertical, then the position operators take place and
+    then the box column is rotated. The fixpoint of the rotation is
+    in the middle of the middlest box (or just between the two
+    middle boxes if there is an even number of boxes).
+    */
+
+    /* for the positional arguments, see my comment "position of box rows" */
+    .right-side-of-triangle {
+      left: 250px;
+      top: 80px;
+      transform: rotate(-30deg);
+    }
+
+    /* for the positional arguments, see my comment "position of box rows" */
+    .left-side-of-triangle {
+      right: 250px;
+      top: 80px;
+      transform: rotate(30deg);
+    }
+
+    /* for the positional arguments, see my comment "position of box rows" */
+    .bottom-side-of-triangle {
+      bottom: 0px;
+      left: 200px;
+      display: flex;
+      transform: rotate(90deg);
+    }
+
+    .circle {
+      position: absolute;
+      width: 15px;
+      height: 15px;
+      border: 1px solid black;
+      background: white;
+      top: 180px;
+      left: 200px;
+      border-radius: 50%;
+      font-size: 7px;
+      text-align: center;
+    }
+
+    .home-and-win-fields {
+      position: absolute;
+      display: flex;
+      gap: 2px;
+      flex-direction: column;
+    }
+
+    .top-left-home-fields {
+      top: 100px;
+      left: 130px;
+      transform: rotate(30deg);
+    }
+
+    .top-right-home-fields {
+      top: 100px;
+      right: 130px;
+      transform: rotate(-30deg);
+    }
+
+    .bottom-home-fields {
+      bottom: 50px;
+      left: 150px;
+      transform: rotate(90deg);
+    }
+
+    .top-left-win-fields {
+      top: 169px;
+      left: 173px;
+      transform: rotate(-60deg);
+    }
+
+    .top-right-win-fields {
+      top: 182px;
+      right: 168px;
+      transform: rotate(60deg);
+    }
+
+    .bottom-win-fields {
+      bottom: 115px;
+      left: 192px;
+      transform: rotate(0deg);
+    }
+
+    .hand-cards {
+      position: absolute;
+      display: flex;
+      gap: 2px;
+      flex-direction: column;
+    }
+
+    .top-left-cards {
+      top: 0px;
+      left: 100px;
+      transform: rotate(30deg);
+    }
+
+    .top-right-cards {
+      top: 0px;
+      right: 100px;
+      transform: rotate(-30deg);
+    }
+
+    .bottom-cards {
+      bottom: -50px;
+      left: 192px;
+      transform: rotate(90deg);
+    }
+
+    .choose-player {
+      bottom: -10px;
+      left: 50px;
+      transform: rotate(90deg);
+    }
+
+    .display-player {
+      bottom: 40px;
+      left: 50px;
+    }
+
+    .message-position {
+      bottom: 5px;
+      left: 120px;
+    }
+
+    .want-to-go-back {
+      bottom: 30px;
+      left: 310px;
+    }
+
+    .want-to-enter-goal-field {
+      bottom: 5px;
+      left: 310px;
+    }
