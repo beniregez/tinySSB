@@ -234,6 +234,11 @@ function tdg_load_board(id) {
                 <div class="user-decision" id="wtgb"></div>
                 </div>
 
+                <!-- whos turn is it -->
+                <div class="triangle-side turn">
+                <div class="box" id="turn"></div>
+                </div>
+
             </div>
         </div>
     `;
@@ -242,13 +247,12 @@ function tdg_load_board(id) {
 
     tremola.tinydog.current = id;
     currentPlayingPlayer = who_am_I(id);
-    if (tremola.tinydog.active[tremola.tinydog.current].game[0] == null) {
+    if (tremola.tinydog.active[tremola.tinydog.current].game == null) {
         tremola.tinydog.active[tremola.tinydog.current].game = new Game(currentPlayingPlayer);
-        initialize_board();
-    } else {
-        updateBoard();
     }
+    initialize_board();
     setScenario('tinydog-board')
+    console.log("SET SCENARIO TO BOARD YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY")
 }
 
 // Scenario for choosing two peers (after clicking on plus button)
@@ -279,7 +283,7 @@ function tdg_new_game_confirmed() {
     let prevHash = getPrevHash(myId)
     backend("tinydog N " + selected[0] + " " + selected[1] + " " + prevHash)
 
-    if (curr_scenario === 'members')
+    if (curr_scenario == 'members')
         setScenario('tinydog-list');
 }
 
@@ -287,6 +291,7 @@ let currentPlayingPlayer = -1;
 
 // Called when tinydog-specific messages are received
 function tdg_on_rx(ref, from, args) {
+    console.log(`args: ${args} YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY`)
     if (typeof tremola.tinydog == "undefined")
         tremola.tinydog = { 'active': {}, 'closed': {} };
     let ta = tremola.tinydog.active;
@@ -296,11 +301,17 @@ function tdg_on_rx(ref, from, args) {
         let participants = [from, args[1], args[2]]
         let peers = [args[1], args[2]];
 
-        if (!peers.includes(myId) && from != myId)
+        console.log("before if YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYy")
+        if (!peers.includes(myId) && from != myId) {
+            console.log("in if YYYYYYYYYYYYYYYYYYYYYYYYYYYYY")
             return; // ignore if not a participant
+        }
+        console.log("after if 1 YYYYYYYYYYYYYYYYYYYYYYYYYYY")
 
         let otherPlayers = participants.filter(p => p !== myId);
         let fromHash = args[3]
+
+        console.log("after if 2 YYYYYYYYYYYYYYYYYYYYYYYYYYY")
 
         ta[ref] = {
             'peers': otherPlayers,                    // the other two players
@@ -311,15 +322,19 @@ function tdg_on_rx(ref, from, args) {
             'accepted': [],                           // two peers are added here as soon as they accepted
             'cnt': 0,
             'close_reason': '',
-            'game': [null, [-1]],
+            'game': null,
         };
 
-        persist();
+        console.log("after if 3 YYYYYYYYYYYYYYYYYYYYYYYYYYY")
         console.log("tdx_on_rx args " + JSON.stringify(args) + ` from=${from} ref=${ref}`);
-        if (curr_scenario === 'tinydog-list')
+        console.log(`${curr_scenario} YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY`)
+        if (curr_scenario == 'tinydog-list') {
             setTimeout(() => {
+                console.log(`here YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY`)
                 tdg_load_list();
             }, 0);
+        }
+        persist();
         return;
     }
     let g = ta[args[1]];
@@ -340,12 +355,23 @@ function tdg_on_rx(ref, from, args) {
         } else if (from === myId) {
             g.state = 'accepted';
         }
-
+        if (curr_scenario == 'tinydog-list') {
+            setTimeout(() => {
+                console.log(`here YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY`)
+                tdg_load_list();
+            }, 0);
+        }
         persist();
 
     } else if (args[0] === 'X') { // decline
              g.state = 'closed';
              g.close_reason = 'declined by peer';
+             if (curr_scenario == 'tinydog-list') {
+                 setTimeout(() => {
+                     console.log(`here YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY`)
+                     tdg_load_list();
+                 }, 0);
+             }
              persist();
 
     } else if (args[0] === 'E') { // end
@@ -354,14 +380,18 @@ function tdg_on_rx(ref, from, args) {
          persist();
     } else if (args[0] == REJECT_CARD) {
         tremola.tinydog.active[tremola.tinydog.current].game.tdg_on_rx(args);
+        persist();
     } else if (args[0] == PLAYERS_TURN) {
         tremola.tinydog.active[tremola.tinydog.current].game.tdg_on_rx(args);
+        persist();
     } else if (args[0] == DRAW_FROM_CHEAT_CARDS) {
         tremola.tinydog.active[tremola.tinydog.current].game.tdg_on_rx(args);
+        persist();
     } else if (args[0] == DRAW_FROM_NORMAL_CARDS) {
         tremola.tinydog.active[tremola.tinydog.current].game.tdg_on_rx(args);
+        persist();
     }
-    if (curr_scenario === 'tinydog-list')
+    if (curr_scenario == 'tinydog-list')
         tdg_load_list();
     return;
 }
@@ -946,6 +976,7 @@ class Game{
     }
 
     incrementPlayersTurn() {
+        console.log("increment players turn YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY")
         this.playersTurn = (this.playersTurn + 1) % 4;
         if (this.playersTurn == 0) {
             this.playersTurn = this.playersTurn + 1;
@@ -955,6 +986,7 @@ class Game{
     nextPlayer(player) {
         this.chosenCard = -1;
         this.choosenPawn = -1;
+        console.log("need to call increment YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY")
         this.incrementPlayersTurn();
         if(player.wonTheGame()){//check after each move if someone won the game and if so finish it.
             this.message = `Player ${player.getPlayerNumber()} won the game.`;
@@ -1044,9 +1076,11 @@ class Game{
                 let needs_to_replicate = this.get_needs_to_replicate();
                 let enterBit = wantsToEnterGoalField? 1: 0;
                 let goBackBit = wantsToGoBack? 1: 0;
+                console.log("thisplayersturn YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY")
                 let [worked, returnMessage] = this.playersturn(player, figure, this.chosenCard, wantsToEnterGoalField, wantsToGoBack);
                 if (worked) {
                     this.backend(TINYDOG_COMMAND + " " + PLAYERS_TURN + " " + needs_to_replicate + " " + playerNo + " " + figure.getID() + " " + this.chosenCard + " " + enterBit + " " + goBackBit);
+                    console.log("Need to call nextPlayer YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY")
                     this.nextPlayer(player);
                 } else {
                     this.message = returnMessage;
@@ -1164,7 +1198,7 @@ class Game{
         let board = this.playground.getBoard();
         let pos = [];
         if(player.getPlayerNumber() == 1)
-            pos.push(-1, 47, 0, 48);
+            pos.push(47, 49, 50, 51);
         if(player.getPlayerNumber() == 2)
             pos.push(-1, 16, 15, 48);
         if(player.getPlayerNumber() == 3)
@@ -1555,6 +1589,7 @@ function onBoxClick(id) {
         console.log(`Developer error: This function should have not been invoked with id ${id}`);
     }
     updateBoard();
+    persist();
 }
 
 function updateBoard() {
@@ -1563,6 +1598,9 @@ function updateBoard() {
     updateeWinfields();
     updateeCards();
     updateMessage();
+    let currentPlayer = tremola.tinydog.active[tremola.tinydog.current].game.playersTurn;
+    let id = "turn"
+    ElementManager.display(id, currentPlayer);
 }
 
 function initialize_board() {
@@ -1598,4 +1636,9 @@ function initialize_board() {
         let id = "circle"
         ElementManager.addEventListener(id, onBoxClick, [id]);
     }
+
+    // whos turn is it
+    let currentPlayer = tremola.tinydog.active[tremola.tinydog.current].game.playersTurn;
+    let id = "turn"
+    ElementManager.display(id, currentPlayer);
 }
