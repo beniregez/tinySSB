@@ -223,6 +223,7 @@ function tdg_load_board(id) {
     `;
 
     tremola.tinydog.current = id;
+    currentPlayingPlayer = who_am_I(id);
     if (tremola.tinydog.active[tremola.tinydog.current].game[0] == null) {
         tremola.tinydog.active[tremola.tinydog.current].game = new Game(currentPlayingPlayer);
         initialize_board();
@@ -290,8 +291,6 @@ function tdg_on_rx(ref, from, args) {
             'close_reason': '',
             'game': [null, [-1]],
         };
-
-        currentPlayingPlayer = who_am_I(ref);
 
         persist();
         console.log("tdx_on_rx args " + JSON.stringify(args) + ` from=${from} ref=${ref}`);
@@ -1432,7 +1431,11 @@ function initializeCards() {
     for (let p=1;p<4;p++) {
         for (let c=1;c<7;c++) {
             let id = "p" + p + "c" + c;
-            ElementManager.display(id, cards[p-1][c-1]);
+            if (p == currentPlayingPlayer) {
+                ElementManager.display(id, cards[p-1][c-1]);
+            } else {
+                ElementManager.display(id, "X");
+            }
             ElementManager.addEventListener(id, onBoxClick, [id]);
         }
     }
@@ -1442,7 +1445,11 @@ function updateeCards() {
     for (let p=1;p<4;p++) {
         for (let c=1;c<7;c++) {
             let id = "p" + p + "c" + c;
-            ElementManager.display(id, cards[p-1][c-1]);
+            if (p == currentPlayingPlayer) {
+                ElementManager.display(id, cards[p-1][c-1]);
+            } else {
+                ElementManager.display(id, "X");
+            }
         }
     }
 }
