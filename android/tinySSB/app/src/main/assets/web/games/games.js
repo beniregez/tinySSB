@@ -21,7 +21,9 @@ function load_game_list() {
     load_game_item('Blackjack (dpi24.10)', 'games/dpi24-10-blackjack/coins.svg', null /* '' */,
                    '<em>Authors: Niklas Hasenkopf, Henrik Lümkemann, Roman Ostermiller</em>');
     load_game_item('Hangman (dpi24.11)', 'games/dpi24-11-hangman/hangman.svg', null /* '' */,
-                   '<em>Authors: Matyas Bartha, Mike Baumgartner and Alexander Lutsch</em>');
+                   '<em>Authors: Matyas Bartha, Mike Baumgartner and Alextic-tac-toe.svgander Lutsch</em>');
+    load_game_item('TinyDog (dpi2025)', 'games/tinydog/tinydog.svg', 'setScenario("tinydog-list")',
+                    'TinyDog is a board game for 3 players. Move all your marbles to the goal using cards.');
 }
 
 function load_game_item(title, imageName, fct, descr) {

@@ -162,6 +162,8 @@ function members_confirmed() {
         menu_new_board_name()
     } else if (prev_scenario == 'tictactoe-list') {
         ttt_new_game_confirmed()
+    } else if (prev_scenario == 'tinydog-list') {
+        tdg_new_game_confirmed()
     }
 }
 
@@ -200,6 +202,61 @@ function fill_members_onlyone(m) {
                 continue;
             document.getElementById(nm).checked = false;
         }
+    }
+}
+
+function fill_members_dual() {
+    let choices = '';
+
+    // Build checkbox UI for each contact
+    for (let m in tremola.contacts) {
+        let isSelf = (m === myId);
+        let disabled = isSelf ? 'disabled checked' : '';
+        let cb = isSelf ? '' : `onchange="check_selected_peers()"`;
+
+        choices += '<div style="margin-bottom: 10px;">';
+        choices += `<label><input type="checkbox" id="${m}" ${cb} ${disabled} style="vertical-align: middle;">`;
+        choices += '<div class="contact_item_button light" style="white-space: nowrap; width: calc(100% - 40px); padding: 5px; vertical-align: middle;">';
+        choices += `<div style="text-overflow: ellipsis; overflow: hidden;">${escapeHTML(fid2display(m))}</div>`;
+        choices += `<div style="text-overflow: ellipsis; overflow: hidden;"><font size=-2>${m}</font></div>`;
+        choices += '</div></label></div>\n';
+    }
+    // Insert all checkboxes into the DOM
+    document.getElementById('lst:members').innerHTML = choices;
+
+    // Delay the initial check to ensure all checkboxes are rendered
+    setTimeout(() => {
+        check_selected_peers(); // Now the elements exist in the DOM
+    }, 0);
+}
+
+function check_selected_peers() {
+    let count = 0;
+    let confirmBtn = document.getElementById("div:confirm-members");
+
+    // Count how many contacts (excluding self) are selected
+    for (let m in tremola.contacts) {
+        if (m !== myId) {
+            let cb = document.getElementById(m);
+            if (cb && cb.checked) count++;
+        }
+    }
+
+    // Disable unselected checkboxes if already 2 are selected
+    for (let m in tremola.contacts) {
+        if (m !== myId) {
+            let cb = document.getElementById(m);
+            if (cb) {
+                cb.disabled = !cb.checked && count >= 2;
+            }
+        }
+    }
+
+    // Show confirm button only if exactly 2 peers are selected
+    if (count === 2) {
+        confirmBtn.style.display = 'flex'; // Show confirmation
+    } else {
+        confirmBtn.style.display = 'none'; // Hide otherwise
     }
 }
 
@@ -617,6 +674,8 @@ function b2f_new_event(e) { // incoming SSB log event: we get map with three ent
             }
         } else if (e.public[0] == "TTT")
             ttt_on_rx(e.header.ref, e.header.fid, e.public.slice(1))
+        else if (e.public[0] == "TDG")
+            tdg_on_rx(e.header.ref, e.header.fid, e.public.slice(1))
 
         persist();
         must_redraw = true;

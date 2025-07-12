@@ -40,6 +40,7 @@ import nz.scuttlebutt.tremolavossbol.utils.Constants.Companion.TINYSSB_APP_DELET
 import nz.scuttlebutt.tremolavossbol.utils.Constants.Companion.TINYSSB_APP_DLV
 import nz.scuttlebutt.tremolavossbol.utils.Constants.Companion.TINYSSB_APP_NEWTRUSTED
 import nz.scuttlebutt.tremolavossbol.utils.Constants.Companion.TINYSSB_APP_TICTACTOE
+import nz.scuttlebutt.tremolavossbol.utils.Constants.Companion.TINYSSB_APP_TINYDOG
 import okio.ByteString.Companion.decodeHex
 
 
@@ -324,9 +325,18 @@ class WebAppInterface(val act: MainActivity, val webView: WebView) {
                 act.wai.eval("b2f_get_settings('${settings}')")
             }
             "tictactoe" -> {
+                Log.d("WebAppInterface.kt:","onFrontendRequest('tictactoe') was called")
                 val lst = Bipf.mkList()
                 Bipf.list_append(lst, TINYSSB_APP_TICTACTOE)
                 for (a in args.slice(1 ..args.size-1))
+                    Bipf.list_append(lst, Bipf.mkString(a))
+                Bipf.encode(lst)?.let {act.tinyNode.publish_public_content(it)}
+            }
+            "tinydog" -> {
+//                Log.d("WebAppInterface.kt:","onFrontendRequest('tinydog') was called")
+                val lst = Bipf.mkList()
+                Bipf.list_append(lst, TINYSSB_APP_TINYDOG)
+                for (a in args.slice(1 until args.size))
                     Bipf.list_append(lst, Bipf.mkString(a))
                 Bipf.encode(lst)?.let {act.tinyNode.publish_public_content(it)}
             }
@@ -359,6 +369,32 @@ class WebAppInterface(val act: MainActivity, val webView: WebView) {
             else -> {
                 Log.d("onFrontendRequest", "unknown")
             }
+        }
+    }
+
+    @JavascriptInterface
+    fun getPrevHashFromB64(fid: String): String? {
+        return try {
+            val base64 = fid.removePrefix("@").removeSuffix(".ed25519")
+            val bytes = android.util.Base64.decode(base64, android.util.Base64.DEFAULT)
+
+            val replica = (act as MainActivity).tinyRepo.fid2replica(bytes)
+            if (replica == null) {
+                Log.e("TinyDog", "No replica found for fid.")
+                return null
+            }
+
+            val prev = replica.state?.prev
+            if (prev == null) {
+                Log.e("TinyDog", "No prev hash found in state.")
+                return null
+            }
+
+            prev.joinToString("") { "%02x".format(it) }
+
+        } catch (e: Exception) {
+            Log.e("TinyDog", "Error in getPrevHashFromB64: ${e.message}", e)
+            null
         }
     }
 
