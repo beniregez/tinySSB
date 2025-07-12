@@ -276,14 +276,6 @@ function tdg_on_rx(ref, from, args) {
         let participants = [from, args[1], args[2]]
         let peers = [args[1], args[2]];
 
-        if (from == myId) {
-            currentPlayingPlayer = 1;
-        } else if (args[1] == myId) {
-            currentPlayingPlayer = 2;
-        } else if (args[2] == myId) {
-            currentPlayingPlayer = 3;
-        }
-
         if (!peers.includes(myId) && from != myId)
             return; // ignore if not a participant
 
@@ -296,8 +288,10 @@ function tdg_on_rx(ref, from, args) {
             'accepted': [],                           // two peers are added here as soon as they accepted
             'cnt': 0,
             'close_reason': '',
-            'game': [null, [currentPlayingPlayer]],
+            'game': [null, [-1]],
         };
+
+        currentPlayingPlayer = who_am_I(ref);
 
         persist();
         console.log("tdx_on_rx args " + JSON.stringify(args) + ` from=${from} ref=${ref}`);
@@ -340,6 +334,19 @@ function tdg_on_rx(ref, from, args) {
     if (curr_scenario === 'tinydog-list')
         tdg_load_list();
     return;
+}
+
+function who_am_I(id) {
+    let ta = tremola.tinydog.active;
+    if (ta[id].participants[0] == myId) {
+        return 1
+    }
+    if (ta[id].participants[1] == myId) {
+        return 2
+    }
+    if (ta[id].participants[2] == myId) {
+        return 3
+    }
 }
 
 // Onclick function for left and right button in tinydog_list
