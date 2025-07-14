@@ -72,35 +72,36 @@ function tdg_load_board(id) {
     if (g.state == 'inviting' || g.state == 'invited')
         return;
 
-    let t = document.getElementById('tdg_title');
-    let titleHTML = "";
-
-    if (g.state == 'open') {
-        // Decide order and who's turn it is
-        let currentTurnIndex = g.cnt % 3;
-        let currentPlayerId = g.order[currentTurnIndex];
-        let currentPlayer = g.participants[currentPlayerId];
-
-        // Turn display
-        if (currentPlayer === myId) {
-            titleHTML += `<font size="+2"><strong>My turn</strong></font>`;
-        } else {
-            titleHTML += `<font size="+2"><strong>${fid2display(currentPlayer)}'s turn</strong></font>`;
-        }
-        // Order display
-        let orderDisplay = g.order.map(idx => {
-            let pID = g.participants[idx];
-            return (pID === myId) ? "You" : fid2display(pID);
-        }).join(" → ");
-
-        titleHTML += `<br><span style="font-size: smaller;">${orderDisplay}</span>`;
-
-    } else if (g.state == 'closed') {
-        let msg = "closed";
-        t.innerHTML = `<font size=+2 color=red><strong>${msg}</strong></font>`;
-    } else {
-        t.innerHTML = `<font size=+2><strong>Waiting for players...</strong></font>`;
-    }
+//    Commented out because not used at this moment
+//    let t = document.getElementById('tdg_title');
+//    let titleHTML = "";
+//
+//    if (g.state == 'open') {
+//        // Decide order and who's turn it is
+//        let currentTurnIndex = g.cnt % 3;
+//        let currentPlayerId = g.order[currentTurnIndex];
+//        let currentPlayer = g.participants[currentPlayerId];
+//
+//        // Turn display
+//        if (currentPlayer === myId) {
+//            titleHTML += `<font size="+2"><strong>My turn</strong></font>`;
+//        } else {
+//            titleHTML += `<font size="+2"><strong>${fid2display(currentPlayer)}'s turn</strong></font>`;
+//        }
+//        // Order display
+//        let orderDisplay = g.order.map(idx => {
+//            let pID = g.participants[idx];
+//            return (pID === myId) ? "You" : fid2display(pID);
+//        }).join(" → ");
+//
+//        titleHTML += `<br><span style="font-size: smaller;">${orderDisplay}</span>`;
+//
+//    } else if (g.state == 'closed') {
+//        let msg = "closed";
+//        t.innerHTML = `<font size=+2 color=red><strong>${msg}</strong></font>`;
+//    } else {
+//        t.innerHTML = `<font size=+2><strong>Waiting for players...</strong></font>`;
+//    }
 
     // Show or hide optional footer
 //    let f = document.getElementById('tdg_footer');
@@ -243,7 +244,7 @@ function tdg_load_board(id) {
         </div>
     `;
 
-    t.innerHTML = titleHTML;
+//    t.innerHTML = titleHTML;
 
     tremola.tinydog.current = id;
     currentPlayingPlayer = who_am_I(id);
